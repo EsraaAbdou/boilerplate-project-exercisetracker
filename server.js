@@ -50,21 +50,28 @@ app.get('/api/exercise/users', (req, res) => {
 });
 
 app.post('/api/exercise/add', (req, res) => {
-  // const regEx = /^\d{4}-\d{2}-\d{2}$/;
-  // const date = (req.body.date.match(regEx)) ? new Date(req.body.date): new Date();
   let dateObj = new Date(req.body.date);
   if (isNaN(dateObj.getTime())) dateObj = new Date(); 
-  const date = dateObj.toDateString();
+  const date = dateObj;
   const description = req.body.description;
   const duration = parseFloat(req.body.duration);
   const exercise = {description, duration, date};
   User.findByIdAndUpdate(req.body.userId, {$push: {exercises: exercise}}, {new: true, upsert: true}, (err, data) => {
-    if(data) res.json({"_id": data._id,"username": data.username,"date": date,"duration": duration, "description": description});
+    if(data) res.json({"_id": data._id, "username": data.username, "date": date.toDateString(), "duration": duration, "description": description});
   })
 });
 
-app.get('/api/exercise/log?{userId}[&from][&to][&limit]', (req, res) => {
-
+app.get('/api/exercise/log', (req, res) => {
+  const userId = req.query.userId;
+  User.findById(userId)
+  .select('-exercises._id -__v')
+  .exec((err, data) => {
+    if(data){
+      res.json({'_id': data._id, 'username': data.username, 'count':data.exercises? data.exercises.length: 0, log: data.exercises? data.exercises: []})
+    } else {
+      res.send("Unknown userId");
+    }
+  });
 });
 
 const listener = app.listen(process.env.PORT || 3000, () => {
