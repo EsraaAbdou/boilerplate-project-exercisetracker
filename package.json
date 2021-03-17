@@ -7,12 +7,14 @@
 		"start": "node server.js"
 	},
 	"dependencies": {
+		"body-parser": "^1.19.0",
+		"cors": "^2.8.5",
 		"dotenv": "^8.2.0",
 		"express": "^4.16.4",
-		"cors": "^2.8.5"
+		"mongoose": "^5.12.0"
 	},
 	"repository": {
-		"url": "https://github.com/freeCodeCamp/boilerplate-project-exercisetracker"
+		"url": "https://github.com/EsraaAbdou/boilerplate-project-exercisetracker"
 	},
 	"license": "MIT",
 	"keywords": [
