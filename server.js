@@ -52,14 +52,19 @@ app.get('/api/exercise/users', (req, res) => {
 app.post('/api/exercise/add', (req, res) => {
   // const regEx = /^\d{4}-\d{2}-\d{2}$/;
   // const date = (req.body.date.match(regEx)) ? new Date(req.body.date): new Date();
-  let date = new Date(req.body.date);
-  if (isNaN(date.getTime())) date = new Date(); 
-  console.log(date)
-  const exercise = {description: req.body.description, duration: req.body.duration, date: date.toDateString()};
+  let dateObj = new Date(req.body.date);
+  if (isNaN(dateObj.getTime())) dateObj = new Date(); 
+  const date = dateObj.toDateString();
+  const description = req.body.description;
+  const duration = parseFloat(req.body.duration);
+  const exercise = {description, duration, date};
   User.findByIdAndUpdate(req.body.userId, {$push: {exercises: exercise}}, {new: true, upsert: true}, (err, data) => {
-    console.log(date);
-    res.json(data);
+    if(data) res.json({"_id": data._id,"username": data.username,"date": date,"duration": duration, "description": description});
   })
+});
+
+app.get('/api/exercise/log?{userId}[&from][&to][&limit]', (req, res) => {
+
 });
 
 const listener = app.listen(process.env.PORT || 3000, () => {
