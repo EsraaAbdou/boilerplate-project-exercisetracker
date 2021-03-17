@@ -16,17 +16,14 @@ app.use(bodyParser.urlencoded({ extended: false }))
 const Schema = mongoose.Schema;
 
 const UserSchema = new Schema({
-  username: {type:String, unique: true}
+  username: {type: String, unique: true},
+  exercises: [{
+    description: {type: String, required: true},
+    duration: {type: Number, required: true},
+    date: {type: String, required: true}
+  }]
 });
 const User = mongoose.model('User', UserSchema);
-
-const ExerciseSchema = new Schema({
-  userId: {type: Number, required: true},
-  description: {type: String, required: true},
-  duration: {type: String, required: true},
-  date: {type:Date, required: true}
-});
-const Exercise = mongoose.model('Exercise', ExerciseSchema);
 
 app.get('/', (req, res) => {
   res.sendFile(__dirname + '/views/index.html')
@@ -50,6 +47,19 @@ app.get('/api/exercise/users', (req, res) => {
   User.find((err, data) => {
     if(data) res.json(data);
   });
+});
+
+app.post('/api/exercise/add', (req, res) => {
+  // const regEx = /^\d{4}-\d{2}-\d{2}$/;
+  // const date = (req.body.date.match(regEx)) ? new Date(req.body.date): new Date();
+  let date = new Date(req.body.date);
+  if (isNaN(date.getTime())) date = new Date(); 
+  console.log(date)
+  const exercise = {description: req.body.description, duration: req.body.duration, date: date.toDateString()};
+  User.findByIdAndUpdate(req.body.userId, {$push: {exercises: exercise}}, {new: true, upsert: true}, (err, data) => {
+    console.log(date);
+    res.json(data);
+  })
 });
 
 const listener = app.listen(process.env.PORT || 3000, () => {
