@@ -63,11 +63,27 @@ app.post('/api/exercise/add', (req, res) => {
 
 app.get('/api/exercise/log', (req, res) => {
   const userId = req.query.userId;
+  const dateFrom = new Date(req.query.from);
+  const dateTo = new Date(req.query.to);
+  const limit = req.query.limit;
+
   User.findById(userId)
   .select('-exercises._id -__v')
   .exec((err, data) => {
     if(data){
-      res.json({'_id': data._id, 'username': data.username, 'count':data.exercises? data.exercises.length: 0, log: data.exercises? data.exercises: []})
+      // filters
+      let logArr = [];
+      if(data.exercises) logArr = [...data.exercises];
+      logArr.map(log => {
+        log.date = new Date(log.date).toDateString();
+        return log;
+      });
+
+      if(dateFrom && !isNaN(dateFrom.getTime())) logArr = logArr.filter(log => new Date(log.date) >= dateFrom);
+      if(dateTo && !isNaN(dateTo.getTime())) logArr = logArr.filter(log => new Date(log.date) <= dateTo);
+      if(limit) logArr = logArr.slice(0, limit);
+
+      res.json({'_id': data._id, 'username': data.username, 'count': logArr.length, log: logArr})
     } else {
       res.send("Unknown userId");
     }
